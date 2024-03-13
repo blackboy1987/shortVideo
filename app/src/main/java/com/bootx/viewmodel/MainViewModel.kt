@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.bootx.service.HomeData
 import com.bootx.service.HomeService
+import com.bootx.service.List1Data
 import com.bootx.util.CommonUtils
 import com.bootx.util.SharedPreferencesUtils
 
@@ -16,7 +17,7 @@ class MainViewModel:ViewModel() {
 
     var homeData by mutableStateOf(listOf(HomeData(name = "", fsId = "",category=6,cover="")))
 
-    var list by mutableStateOf(listOf(HomeData(name = "", fsId = "",category=6,cover="")))
+    var list by mutableStateOf(listOf(List1Data(name = "", fsId = "")))
 
     var loading by mutableStateOf(false)
         private set
@@ -40,9 +41,9 @@ class MainViewModel:ViewModel() {
 
     suspend fun list(context:Context,fsId: String){
         try {
-            val res = homeService.category(SharedPreferencesUtils(context).get("token"),fsId)
+            val res = homeService.list(SharedPreferencesUtils(context).get("token"),fsId)
             if (res.code == 0) {
-                val tmpList = mutableListOf<HomeData>()
+                val tmpList = mutableListOf<List1Data>()
                 tmpList.addAll(res.data)
                 list = tmpList
             }else{
