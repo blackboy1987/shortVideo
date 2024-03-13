@@ -46,6 +46,7 @@ fun PlayScreen(navController: NavHostController,fsId: String,playViewModel: Play
     var nextFsId by remember { mutableStateOf(fsId) }
     LaunchedEffect(Unit) {
         playUrl = SharedPreferencesUtils(context).get(fsId)
+        playViewModel.items(context,fsId)
 
     }
     val configuration = LocalConfiguration.current
