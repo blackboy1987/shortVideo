@@ -171,7 +171,7 @@ fun PlayScreen(
                     enablePip = true,
                     handleAudioFocus = true,
                     controllerConfig = VideoPlayerControllerConfig(
-                        showSpeedAndPitchOverlay = true,
+                        showSpeedAndPitchOverlay = false,
                         showSubtitleButton = true,
                         showCurrentTimeAndTotalTime = true,
                         showBufferingProgress = true,
