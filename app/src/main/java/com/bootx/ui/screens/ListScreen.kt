@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListScreen(navController: NavHostController,fsId: String, listViewModel: ListViewModel = viewModel()) {
+fun ListScreen(navController: NavHostController,id: String, listViewModel: ListViewModel = viewModel()) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val title by remember{
@@ -41,7 +41,7 @@ fun ListScreen(navController: NavHostController,fsId: String, listViewModel: Lis
     }
 
     LaunchedEffect(Unit) {
-        listViewModel.list(context, fsId)
+        listViewModel.list(context, id)
         SharedPreferencesUtils(context).get("title")
     }
     ShortVideoTheme {
@@ -68,16 +68,16 @@ fun ListScreen(navController: NavHostController,fsId: String, listViewModel: Lis
                                 if (item.category == 6) {
                                     SharedPreferencesUtils(context).set("title",item.name)
                                     coroutineScope.launch {
-                                        navController.navigate(Destinations.ListFrame.route + "/${item.fsId}")
+                                        navController.navigate(Destinations.ListFrame.route + "/${item.id}")
                                     }
                                 } else if (item.category == 1) {
                                     // 获取播放地址
                                     coroutineScope.launch {
-                                        listViewModel.getPlayUrl(context, item.fsId)
-                                        navController.navigate(Destinations.PlayFrame.route + "/${item.fsId}")
+                                        listViewModel.getPlayUrl(context, item.id)
+                                        navController.navigate(Destinations.PlayFrame.route + "/${item.id}")
                                     }
                                     coroutineScope.launch {
-                                        listViewModel.getAllPlayUrl(context, fsId)
+                                        listViewModel.getAllPlayUrl(context, id)
                                     }
 
                                 }

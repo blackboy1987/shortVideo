@@ -14,15 +14,15 @@ import com.bootx.util.SharedPreferencesUtils
 class ListViewModel:ViewModel() {
     private val listService = ListService.instance()
 
-    var list by mutableStateOf(listOf(ListData(name = "", fsId = "",category=6,cover="")))
+    var list by mutableStateOf(listOf(ListData(name = "", id = "",category=6,cover="")))
 
     var loading by mutableStateOf(false)
         private set
 
-    suspend fun list(context:Context,fsId: String){
+    suspend fun list(context:Context,id: String){
         loading = true
         try {
-            val res = listService.list(SharedPreferencesUtils(context).get("token"),fsId)
+            val res = listService.list(SharedPreferencesUtils(context).get("token"),id)
             if (res.code == 0) {
                 val tmpList = mutableListOf<ListData>()
                 tmpList.addAll(res.data)
@@ -38,11 +38,11 @@ class ListViewModel:ViewModel() {
     }
 
 
-    suspend fun getPlayUrl(context:Context,fsId: String){
+    suspend fun getPlayUrl(context:Context,id: String){
         try {
-            val res = listService.getPlayUrl(SharedPreferencesUtils(context).get("token"),fsId)
+            val res = listService.getPlayUrl(SharedPreferencesUtils(context).get("token"),id)
             if (res.code == 0) {
-                SharedPreferencesUtils(context).set(fsId+"",res.data)
+                SharedPreferencesUtils(context).set(id+"",res.data)
             }else{
                 CommonUtils.toast(context,res.msg)
             }
@@ -52,11 +52,11 @@ class ListViewModel:ViewModel() {
     }
 
 
-    suspend fun getAllPlayUrl(context:Context,fsId: String){
+    suspend fun getAllPlayUrl(context:Context,id: String){
         try {
-            val res = listService.getAllPlayUrl(SharedPreferencesUtils(context).get("token"),fsId)
+            val res = listService.getAllPlayUrl(SharedPreferencesUtils(context).get("token"),id)
             if (res.code == 0) {
-                SharedPreferencesUtils(context).set(fsId+"",res.data)
+                SharedPreferencesUtils(context).set(id+"",res.data)
             }else{
                 CommonUtils.toast(context,res.msg)
             }

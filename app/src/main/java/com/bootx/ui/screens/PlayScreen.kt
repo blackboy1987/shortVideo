@@ -1,7 +1,6 @@
 package com.bootx.ui.screens
 
 
-import android.app.Activity
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.foundation.background
@@ -12,29 +11,36 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
@@ -42,7 +48,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.navigation.NavHostController
 import com.bootx.compose.video.RepeatMode
-import com.bootx.compose.video.ResizeMode
 import com.bootx.compose.video.VideoPlayer
 import com.bootx.compose.video.controller.VideoPlayerControllerConfig
 import com.bootx.compose.video.uri.VideoPlayerMediaItem
@@ -51,51 +56,115 @@ import com.bootx.viewmodel.PlayViewModel
 import kotlinx.coroutines.launch
 
 
+@kotlin.OptIn(ExperimentalMaterial3Api::class)
 @OptIn(UnstableApi::class)
 @Composable
 fun PlayScreen(
     navController: NavHostController,
-    fsId: String,
+    id: String,
     playViewModel: PlayViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    var playUrl by remember { mutableStateOf("https://bootx-video.oss-cn-hangzhou.aliyuncs.com/270925551843771.m3u8") }
-    var nextFsId by remember { mutableStateOf(fsId) }
+    var playUrl by remember { mutableStateOf("") }
+    var title by remember {
+        mutableStateOf("")
+    }
+    var currentIndex by remember {
+        mutableIntStateOf(0)
+    }
     LaunchedEffect(Unit) {
-        //playUrl = SharedPreferencesUtils(context).get(fsId)
-        playViewModel.items(context, fsId)
-
+        title = SharedPreferencesUtils(context).get("title")
+        playViewModel.items(context, id)
+        // 获取到列表之后，再获取播放地址
+        val oldCurrentIndex =
+            try {
+                //currentIndex = SharedPreferencesUtils(context).get("${id}_currentIndex").toInt()
+            } catch (_: Exception) {
+            }
+        // 记录播放的集数
+        SharedPreferencesUtils(context).set("${id}_currentIndex", "$currentIndex")
+        playUrl = playViewModel.play(context, playViewModel.list[currentIndex].id)
     }
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(
+            skipHiddenState = false
+        )
+    )
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val halfScreenHeight = screenHeight / 2
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 0.dp,
+        sheetSwipeEnabled = false,
+        sheetContent = {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(halfScreenHeight),
+                contentAlignment = Alignment.Center
+            ) {
+                LazyColumn(
+                    contentPadding = PaddingValues(4.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    itemsIndexed(playViewModel.list) { index, item ->
+                        ListItem(
+                            modifier = Modifier.clickable {
 
-    // 获取当前的Activity
-    val activity = (LocalContext.current as? Activity)
-    // 在Compose的SideEffect中设置沉浸式状态栏
-    SideEffect {
-        // 设置内容显示在状态栏和导航栏下方
-        activity?.window?.let { WindowCompat.setDecorFitsSystemWindows(it, false) }
-        activity?.window?.statusBarColor = android.graphics.Color.TRANSPARENT
-    }
-    Surface(
-        modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
+                            },
+                            headlineContent = {
+                                Text(text = "第 ${index + 1} 集")
+                            },
+                            trailingContent = {
+                                if (currentIndex == index) {
+                                    OutlinedButton(onClick = {
+                                    }) {
+                                        Text(text = "播放中")
+                                    }
+                                } else {
+                                    OutlinedButton(onClick = {
+                                        coroutineScope.launch {
+                                            currentIndex = index
+                                            playUrl = playViewModel.play(
+                                                context,
+                                                playViewModel.list[index].id
+                                            )
+                                            scaffoldState.bottomSheetState.hide()
+                                        }
+                                    }) {
+                                        Text(text = "播放")
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        }
     ) {
         Box() {
-            Box(){
+            Box() {
                 VideoPlayer(
                     Modifier
                         .fillMaxSize()
                         .align(Alignment.TopCenter)
                         .clickable {
-                            Log.e("VideoPlayer click", "PlayScreen: aaa")
+                            coroutineScope.launch {
+                                if (scaffoldState.bottomSheetState.isVisible) {
+                                    scaffoldState.bottomSheetState.hide()
+                                }
+                            }
                         },
                     mediaItems = listOf(
                         VideoPlayerMediaItem.NetworkMediaItem(
                             url = playUrl,
-                            mediaMetadata = MediaMetadata.Builder().setTitle("Clear MP4: Dizzy").build(),
+                            mediaMetadata = MediaMetadata.Builder().setTitle("Clear MP4: Dizzy")
+                                .build(),
                             mimeType = MimeTypes.APPLICATION_M3U8,
                         ),
                     ),
-                    resizeMode = ResizeMode.ZOOM,
                     handleLifecycle = true,
                     autoPlay = true,
                     usePlayerController = false,
@@ -119,6 +188,9 @@ fun PlayScreen(
                     repeatMode = RepeatMode.NONE,
                     onCurrentTimeChanged = {
                         Log.e("CurrentTime", it.toString())
+
+                        // 记录播放的集数的时间
+                        SharedPreferencesUtils(context).set("${id}_time", it.toString())
                     },
                     playerInstance = {
                         addAnalyticsListener(object : AnalyticsListener {
@@ -128,46 +200,78 @@ fun PlayScreen(
                                 state: Int
                             ) {
                                 super.onPlaybackStateChanged(eventTime, state)
-                                if(state==4){
+                                /*if (state == Player.STATE_READY) {
+                                    CommonUtils.toast(context,"$currentIndex")
+                                    try {
+                                        val time = SharedPreferencesUtils(context).get("${id}_time")
+                                        seekTo(time.toLong())
+                                    }catch (_:Exception){}
+                                }*/
+                                if (state == 4) {
                                     // 播放完成
-                                    Log.e("onPlaybackStateChanged1", "onPlaybackStateChanged0: $playUrl,$fsId", )
+                                    Log.e(
+                                        "onPlaybackStateChanged1",
+                                        "onPlaybackStateChanged0: $playUrl,$id",
+                                    )
                                     coroutineScope.launch {
-                                        nextFsId = playViewModel.getNext(context, nextFsId)
-                                        playUrl = SharedPreferencesUtils(context).get(nextFsId)
-                                        Log.e("onPlaybackStateChanged1", "onPlaybackStateChanged1: $playUrl,$nextFsId", )
+                                        currentIndex += 1
+                                        // 记录播放的集数
+                                        SharedPreferencesUtils(context).set(
+                                            "${id}_currentIndex",
+                                            "$currentIndex"
+                                        )
+                                        SharedPreferencesUtils(context).set("${id}_time", "0")
+                                        playUrl = playViewModel.play(
+                                            context,
+                                            playViewModel.list[currentIndex].id
+                                        )
                                     }
                                 }
                             }
+
+
                         })
                     },
                 )
             }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopStart)
-                .padding(start = 16.dp, top = 32.dp)) {
-               Text(text = "第一季")
-            }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomStart)
-                .padding(start = 16.dp, bottom = 32.dp, end = 16.dp)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopStart)
+                    .background(Color.Black).alpha(0.9f)
+                    .height(46.dp)
+                    .padding(start = 16.dp, top = 8.dp, end = 16.dp)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    Text(text = "A炼气十万年 98集")
-                    OutlinedButton( contentPadding = PaddingValues(all = 0.dp),
-                        onClick = { /*TODO*/ },
+                    Text(
+                        text = "$title 第 ${currentIndex+1} 集",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+                    OutlinedButton(
+                        contentPadding = PaddingValues(all = 0.dp),
+                        onClick = {
+                            coroutineScope.launch {
+                                scaffoldState.bottomSheetState.expand()
+                            }
+                        },
                         modifier = Modifier.size(width = 60.dp, height = 30.dp)
                     ) {
-                        Text(text = "选集", fontSize = 12.sp, modifier = Modifier.padding(0.dp))
+                        Text(
+                            text = "选集",
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(0.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
         }
     }
 }
-
-

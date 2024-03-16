@@ -15,15 +15,15 @@ import com.bootx.util.SharedPreferencesUtils
 class PlayViewModel:ViewModel() {
     private val playService = PlayService.instance()
 
-    var list by mutableStateOf(listOf(ItemData(playUrl = "", fsId = "",path="")))
+    var list by mutableStateOf(listOf(ItemData(id = "")))
 
     var loading by mutableStateOf(false)
         private set
 
-    suspend fun items(context:Context,fsId: String){
+    suspend fun items(context:Context,id: String){
         loading = true
         try {
-            val res = playService.items(SharedPreferencesUtils(context).get("token"),fsId)
+            val res = playService.items(SharedPreferencesUtils(context).get("token"),id)
             if (res.code == 0) {
                 val tmpList = mutableListOf<ItemData>()
                 tmpList.addAll(res.data)
@@ -37,19 +37,19 @@ class PlayViewModel:ViewModel() {
         }
     }
 
-    suspend fun getNext(context:Context,fsId: String): String{
-        val playUrl = SharedPreferencesUtils(context).get(fsId)
+    suspend fun play(context:Context,id: String): String{
+        val playUrl = SharedPreferencesUtils(context).get(id)
         if(playUrl!=""){
             return playUrl
         }
         try {
-            val res = playService.next(SharedPreferencesUtils(context).get("token"),fsId)
-            if (res.code == 0) {
-                SharedPreferencesUtils(context).set(res.data.fsId+"",res.data.playUrl)
-                return res.data.fsId
+            val res = playService.play(SharedPreferencesUtils(context).get("token"),id)
+            return if (res.code == 0) {
+                SharedPreferencesUtils(context).set(id,res.data)
+                res.data
             }else{
                 CommonUtils.toast(context,res.msg)
-                return ""
+                ""
             }
         }catch (e: Exception){
             Log.e("MainViewModel", "load: ${e.message}", )

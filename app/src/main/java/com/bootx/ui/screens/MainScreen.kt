@@ -1,17 +1,13 @@
 package com.bootx.ui.screens
 
 
-import android.util.Log
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.bootx.ui.components.CustomListItem
-import com.bootx.ui.components.SoftIcon8_8
 import com.bootx.ui.components.TabRowList
 import com.bootx.ui.navigation.Destinations
 import com.bootx.ui.theme.ShortVideoTheme
@@ -39,7 +34,7 @@ fun MainScreen(navController: NavHostController, mainViewModel: MainViewModel = 
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         mainViewModel.category(context, "0")
-        mainViewModel.list(context, mainViewModel.homeData[0].fsId)
+        mainViewModel.list(context, mainViewModel.homeData[0].id)
     }
 
     ShortVideoTheme {
@@ -54,7 +49,7 @@ fun MainScreen(navController: NavHostController, mainViewModel: MainViewModel = 
                         onClick = { index ->
                             selectedTabIndex = index
                             coroutineScope.launch {
-                                mainViewModel.list(context, mainViewModel.homeData[index].fsId)
+                                mainViewModel.list(context, mainViewModel.homeData[index].id)
                             }
                         }
                     )
@@ -65,7 +60,8 @@ fun MainScreen(navController: NavHostController, mainViewModel: MainViewModel = 
                 ) {
                     itemsIndexed(mainViewModel.list) { _, item ->
                         CustomListItem(title =item.name, onClick = {
-                            navController.navigate(Destinations.PlayFrame.route+"/${item.fsId}")
+                            SharedPreferencesUtils(context).set("title",item.name)
+                            navController.navigate(Destinations.PlayFrame.route+"/${item.id}")
                         } )
                     }
                 }

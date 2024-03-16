@@ -36,7 +36,7 @@ fun NavHostApp() {
             MainScreen(navController)
         }
         composable(
-            Destinations.PlayFrame.route + "/{fsId}",
+            Destinations.PlayFrame.route + "/{id}",
             enterTransition = {
                 slideIntoContainer(
                     AnimatedContentTransitionScope.SlideDirection.Right
@@ -48,11 +48,11 @@ fun NavHostApp() {
                 )
             },
         ) {
-            val fsId = it.arguments?.getString("fsId") ?: ""
-            PlayScreen(navController, fsId)
+            val id = it.arguments?.getString("id") ?: ""
+            PlayScreen(navController, id)
         }
         composable(
-            Destinations.ListFrame.route + "/{fsId}",
+            Destinations.ListFrame.route + "/{id}",
             enterTransition = {
                 slideIntoContainer(
                     AnimatedContentTransitionScope.SlideDirection.Right
@@ -64,8 +64,8 @@ fun NavHostApp() {
                 )
             },
         ) {
-            val fsId = it.arguments?.getString("fsId") ?: ""
-            ListScreen(navController, fsId)
+            val id = it.arguments?.getString("id") ?: ""
+            ListScreen(navController, id)
         }
     }
 }

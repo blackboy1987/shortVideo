@@ -11,16 +11,16 @@ interface ListService {
 
     @POST("/api/category")
     @FormUrlEncoded
-    suspend fun list(@Header("token") token: String, @Field("fsId") fsId: String): ListDataResponse
+    suspend fun list(@Header("token") token: String, @Field("id") id: String): ListDataResponse
 
     @POST("/api/getPlayUrl")
     @FormUrlEncoded
-    suspend fun getPlayUrl(@Header("token") token: String, @Field("fsId") fsId: String): GetPlayUrlResponse
+    suspend fun getPlayUrl(@Header("token") token: String, @Field("id") id: String): GetPlayUrlResponse
 
 
     @POST("/api/getAllPlayUrl")
     @FormUrlEncoded
-    suspend fun getAllPlayUrl(@Header("token") token: String, @Field("fsId") fsId: String): GetPlayUrlResponse
+    suspend fun getAllPlayUrl(@Header("token") token: String, @Field("id") id: String): GetPlayUrlResponse
 
     companion object {
         fun instance(): ListService {
@@ -34,7 +34,7 @@ data class ListDataResponse(val data: List<ListData>) : BaseResponse()
 
 data class ListData(
     val name: String,
-    var fsId: String,
+    var id: String,
     var category: Int,
     var cover: String,
 )

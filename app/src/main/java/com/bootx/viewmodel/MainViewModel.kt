@@ -15,17 +15,17 @@ import com.bootx.util.SharedPreferencesUtils
 class MainViewModel:ViewModel() {
     private val homeService = HomeService.instance()
 
-    var homeData by mutableStateOf(listOf(HomeData(name = "", fsId = "",category=6,cover="")))
+    var homeData by mutableStateOf(listOf(HomeData(name = "", id = "")))
 
-    var list by mutableStateOf(listOf(List1Data(name = "", fsId = "")))
+    var list by mutableStateOf(listOf(List1Data(name = "", id = "")))
 
     var loading by mutableStateOf(false)
         private set
 
-    suspend fun category(context:Context,fsId: String){
+    suspend fun category(context:Context,id: String){
         loading = true
         try {
-            val res = homeService.category(SharedPreferencesUtils(context).get("token"),fsId)
+            val res = homeService.category(SharedPreferencesUtils(context).get("token"),id)
             if (res.code == 0) {
                 val tmpList = mutableListOf<HomeData>()
                 tmpList.addAll(res.data)
@@ -39,9 +39,9 @@ class MainViewModel:ViewModel() {
         }
     }
 
-    suspend fun list(context:Context,fsId: String){
+    suspend fun list(context:Context,id: String){
         try {
-            val res = homeService.list(SharedPreferencesUtils(context).get("token"),fsId)
+            val res = homeService.list(SharedPreferencesUtils(context).get("token"),id)
             if (res.code == 0) {
                 val tmpList = mutableListOf<List1Data>()
                 tmpList.addAll(res.data)

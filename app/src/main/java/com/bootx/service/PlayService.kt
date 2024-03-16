@@ -9,12 +9,12 @@ import retrofit2.http.POST
 
 interface PlayService {
 
-    @POST("/api/next")
-    @FormUrlEncoded
-    suspend fun next(@Header("token") token: String, @Field("fsId") fsId: String): NextDataResponse
     @POST("/api/items")
     @FormUrlEncoded
-    suspend fun items(@Header("token") token: String, @Field("fsId") fsId: String): ItemDataResponse
+    suspend fun items(@Header("token") token: String, @Field("id") id: String): ItemDataResponse
+    @POST("/api/play")
+    @FormUrlEncoded
+    suspend fun play(@Header("token") token: String, @Field("id") id: String): PlayDataResponse
 
     companion object {
         fun instance(): PlayService {
@@ -25,14 +25,13 @@ interface PlayService {
 
 data class NextDataResponse(val data: NextData) : BaseResponse()
 data class ItemDataResponse(val data: List<ItemData>) : BaseResponse()
+data class PlayDataResponse(val data: String) : BaseResponse()
 
 data class NextData(
-    var fsId: String,
+    var id: String,
     var playUrl: String,
 )
 
 data class ItemData(
-    var fsId: String,
-    var playUrl: String,
-    var path: String,
+    var id: String,
 )

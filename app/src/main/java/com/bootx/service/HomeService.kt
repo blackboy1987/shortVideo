@@ -11,10 +11,10 @@ interface HomeService {
 
     @POST("/api/category")
     @FormUrlEncoded
-    suspend fun category(@Header("token") token: String, @Field("fsId") fsId: String): HomeDataResponse
+    suspend fun category(@Header("token") token: String, @Field("id") id: String): HomeDataResponse
     @POST("/api/list")
     @FormUrlEncoded
-    suspend fun list(@Header("token") token: String, @Field("fsId") fsId: String): List1DataResponse
+    suspend fun list(@Header("token") token: String, @Field("id") id: String): List1DataResponse
 
 
     companion object {
@@ -30,12 +30,10 @@ data class List1DataResponse(val data: List<List1Data>) : BaseResponse()
 
 data class HomeData(
     val name: String,
-    var fsId: String,
-    var category: Int,
-    var cover: String,
+    var id: String,
 )
 
 data class List1Data(
     val name: String,
-    var fsId: String,
+    var id: String,
 )
