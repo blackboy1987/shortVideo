@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun CustomListItem(
     title: String,
-    subtitle: String? = null,
     onClick: () -> Unit,
 ) {
     Surface(
@@ -34,23 +33,14 @@ fun CustomListItem(
                 }
                 .fillMaxWidth()
                 .background(Color.LightGray)
-                .padding(16.dp)
+                .padding(8.dp)
         ) {
             Text(
                 text = title,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 20.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
-            subtitle?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
         }
     }
 }

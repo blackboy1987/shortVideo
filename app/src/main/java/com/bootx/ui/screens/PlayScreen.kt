@@ -1,10 +1,19 @@
 package com.bootx.ui.screens
 
 
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.ContextWrapper
+import android.content.pm.ActivityInfo
+import android.os.Build
 import android.util.Log
+import android.view.WindowInsets
+import androidx.activity.ComponentActivity
 import androidx.annotation.OptIn
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.BottomSheetScaffold
@@ -25,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -41,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
@@ -48,14 +60,20 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.navigation.NavHostController
 import com.bootx.compose.video.RepeatMode
+import com.bootx.compose.video.ResizeMode
 import com.bootx.compose.video.VideoPlayer
 import com.bootx.compose.video.controller.VideoPlayerControllerConfig
 import com.bootx.compose.video.uri.VideoPlayerMediaItem
+import com.bootx.compose.video.util.findActivity
+import com.bootx.ui.components.LeftIcon
 import com.bootx.util.SharedPreferencesUtils
 import com.bootx.viewmodel.PlayViewModel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 
 
+@RequiresApi(Build.VERSION_CODES.R)
+@SuppressLint("RememberReturnType")
 @kotlin.OptIn(ExperimentalMaterial3Api::class)
 @OptIn(UnstableApi::class)
 @Composable
@@ -91,8 +109,22 @@ fun PlayScreen(
             skipHiddenState = false
         )
     )
+
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val halfScreenHeight = screenHeight / 2
+    // 隐藏状态栏
+    WindowCompat.setDecorFitsSystemWindows((context as Activity).window, false)
+
+    val systemUiController = rememberSystemUiController()
+    val useDarkIcons = !isSystemInDarkTheme()
+    DisposableEffect(systemUiController, useDarkIcons) {
+        systemUiController.setSystemBarsColor(
+            color = Color.Transparent,
+            darkIcons = useDarkIcons
+        )
+        onDispose {}
+    }
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
@@ -111,30 +143,49 @@ fun PlayScreen(
                 ) {
                     itemsIndexed(playViewModel.list) { index, item ->
                         ListItem(
+                            shadowElevation = 8.dp,
                             modifier = Modifier.clickable {
 
                             },
                             headlineContent = {
-                                Text(text = "第 ${index + 1} 集")
+                                Text(
+                                    text = "第 ${index + 1} 集",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             },
                             trailingContent = {
                                 if (currentIndex == index) {
-                                    OutlinedButton(onClick = {
-                                    }) {
-                                        Text(text = "播放中")
+                                    OutlinedButton(
+                                        contentPadding = PaddingValues(all = 0.dp),
+                                        modifier = Modifier.size(width = 60.dp, height = 30.dp),
+                                        onClick = {
+                                        }) {
+                                        Text(
+                                            modifier = Modifier.padding(0.dp),
+                                            fontSize = 12.sp,
+                                            text = "播放中"
+                                        )
                                     }
                                 } else {
-                                    OutlinedButton(onClick = {
-                                        coroutineScope.launch {
-                                            currentIndex = index
-                                            playUrl = playViewModel.play(
-                                                context,
-                                                playViewModel.list[index].id
-                                            )
-                                            scaffoldState.bottomSheetState.hide()
-                                        }
-                                    }) {
-                                        Text(text = "播放")
+                                    OutlinedButton(
+                                        contentPadding = PaddingValues(all = 0.dp),
+                                        modifier = Modifier.size(width = 60.dp, height = 30.dp),
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                currentIndex = index
+                                                playUrl = playViewModel.play(
+                                                    context,
+                                                    playViewModel.list[index].id
+                                                )
+                                                scaffoldState.bottomSheetState.hide()
+                                            }
+                                        }) {
+                                        Text(
+                                            modifier = Modifier.padding(0.dp),
+                                            fontSize = 12.sp,
+                                            text = "播放"
+                                        )
                                     }
                                 }
                             }
@@ -165,24 +216,25 @@ fun PlayScreen(
                             mimeType = MimeTypes.APPLICATION_M3U8,
                         ),
                     ),
+                    resizeMode = ResizeMode.ZOOM,
                     handleLifecycle = true,
                     autoPlay = true,
-                    usePlayerController = false,
+                    usePlayerController = true,
                     enablePip = true,
                     handleAudioFocus = true,
                     controllerConfig = VideoPlayerControllerConfig(
                         showSpeedAndPitchOverlay = false,
-                        showSubtitleButton = true,
+                        showSubtitleButton = false,
                         showCurrentTimeAndTotalTime = true,
                         showBufferingProgress = true,
-                        showForwardIncrementButton = true,
-                        showBackwardIncrementButton = true,
-                        showBackTrackButton = true,
-                        showNextTrackButton = true,
-                        showRepeatModeButton = true,
+                        showForwardIncrementButton = false,
+                        showBackwardIncrementButton = false,
+                        showBackTrackButton = false,
+                        showNextTrackButton = false,
+                        showRepeatModeButton = false,
                         controllerShowTimeMilliSeconds = 5_000,
                         controllerAutoShow = true,
-                        showFullScreenButton = true,
+                        showFullScreenButton = false,
                     ),
                     volume = 0.5f,
                     repeatMode = RepeatMode.NONE,
@@ -236,22 +288,28 @@ fun PlayScreen(
             }
             Box(
                 modifier = Modifier
+                    .systemBarsPadding()
                     .fillMaxWidth()
                     .align(Alignment.TopStart)
-                    .background(Color.Black).alpha(0.9f)
-                    .height(46.dp)
-                    .padding(start = 16.dp, top = 8.dp, end = 16.dp)
+                    .height(40.dp)
+                    .padding(top = 8.dp, end = 8.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    LeftIcon(
+                        modifier = Modifier.size(16.dp),
+                        onClick = {
+                            navController.popBackStack()
+                        }
+                    )
                     Text(
-                        text = "$title 第 ${currentIndex+1} 集",
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        text = "$title 第 ${currentIndex + 1} 集",
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontSize = 14.sp
                     )
                     OutlinedButton(
                         contentPadding = PaddingValues(all = 0.dp),
@@ -266,7 +324,7 @@ fun PlayScreen(
                             text = "选集",
                             fontSize = 12.sp,
                             modifier = Modifier.padding(0.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
                     }

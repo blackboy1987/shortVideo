@@ -32,16 +32,20 @@ import kotlinx.coroutines.launch
 fun MainScreen(navController: NavHostController, mainViewModel: MainViewModel = viewModel()) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
         mainViewModel.category(context, "0")
-        mainViewModel.list(context, mainViewModel.homeData[0].id)
+        try{
+            selectedTabIndex = SharedPreferencesUtils(context).get("tabIndex").toInt()
+        }catch (_:Exception){}
+        mainViewModel.list(context, mainViewModel.homeData[selectedTabIndex].id)
     }
 
     ShortVideoTheme {
         Surface(
             modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
         ) {
-            var selectedTabIndex by remember { mutableIntStateOf(0) }
+
             Column {
                 if (!mainViewModel.loading) {
                     TabRowList(tabs = mainViewModel.homeData.map { item -> item.name },
@@ -51,6 +55,7 @@ fun MainScreen(navController: NavHostController, mainViewModel: MainViewModel = 
                             coroutineScope.launch {
                                 mainViewModel.list(context, mainViewModel.homeData[index].id)
                             }
+                            SharedPreferencesUtils(context).set("tabIndex","$selectedTabIndex")
                         }
                     )
                 }

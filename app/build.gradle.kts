@@ -51,6 +51,9 @@ android {
 
 dependencies {
 
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
+
+
 // 图片懒加载
     implementation("io.coil-kt:coil-gif:2.5.0")
     implementation("io.coil-kt:coil-compose:2.5.0")

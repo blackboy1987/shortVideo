@@ -42,6 +42,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
@@ -62,11 +63,13 @@ fun RightIcon(onClick: () -> Unit) {
 }
 
 @Composable
-fun LeftIcon(onClick: () -> Unit) {
+fun LeftIcon(onClick: () -> Unit,modifier: Modifier?) {
     IconButton(
         onClick = { onClick() }
     ) {
-        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "")
+        modifier?.let {
+            Modifier.then(it)
+        }?.let { Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBackIos, contentDescription = "", tint = Color.White, modifier = it) }
     }
 }
 
