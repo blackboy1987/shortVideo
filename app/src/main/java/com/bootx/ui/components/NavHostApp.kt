@@ -8,7 +8,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.bootx.ui.navigation.Destinations
-import com.bootx.ui.screens.ListScreen
 import com.bootx.ui.screens.MainScreen
 import com.bootx.ui.screens.PlayScreen
 
@@ -50,22 +49,6 @@ fun NavHostApp() {
         ) {
             val id = it.arguments?.getString("id") ?: ""
             PlayScreen(navController, id)
-        }
-        composable(
-            Destinations.ListFrame.route + "/{id}",
-            enterTransition = {
-                slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Right
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Left
-                )
-            },
-        ) {
-            val id = it.arguments?.getString("id") ?: ""
-            ListScreen(navController, id)
         }
     }
 }

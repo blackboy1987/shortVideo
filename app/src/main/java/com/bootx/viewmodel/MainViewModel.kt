@@ -39,9 +39,9 @@ class MainViewModel:ViewModel() {
         }
     }
 
-    suspend fun list(context:Context,id: String){
+    suspend fun list(context:Context,id: String,keywords: String){
         try {
-            val res = homeService.list(SharedPreferencesUtils(context).get("token"),id)
+            val res = homeService.list(SharedPreferencesUtils(context).get("token"),id,keywords)
             if (res.code == 0) {
                 val tmpList = mutableListOf<List1Data>()
                 tmpList.addAll(res.data)

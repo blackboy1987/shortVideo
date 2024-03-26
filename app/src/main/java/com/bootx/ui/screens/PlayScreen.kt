@@ -31,6 +31,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
@@ -102,7 +105,7 @@ fun PlayScreen(
             }
         // 记录播放的集数
         SharedPreferencesUtils(context).set("${id}_currentIndex", "$currentIndex")
-        playUrl = playViewModel.play(context, playViewModel.list[currentIndex].id)
+        playUrl = playViewModel.playUrl
     }
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
@@ -114,7 +117,9 @@ fun PlayScreen(
     val halfScreenHeight = screenHeight / 2
     // 隐藏状态栏
     WindowCompat.setDecorFitsSystemWindows((context as Activity).window, false)
-
+    var sliderState = SliderState(
+        value = 0.5f,
+    )
     val systemUiController = rememberSystemUiController()
     val useDarkIcons = !isSystemInDarkTheme()
     DisposableEffect(systemUiController, useDarkIcons) {
@@ -195,19 +200,20 @@ fun PlayScreen(
             }
         }
     ) {
-        Box() {
-            Box() {
+        Box( modifier = Modifier.clickable {
+            coroutineScope.launch {
+                if(scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded){
+                    scaffoldState.bottomSheetState.hide()
+                }
+            }
+        }) {
+            Box(
+
+            ) {
                 VideoPlayer(
                     Modifier
                         .fillMaxSize()
-                        .align(Alignment.TopCenter)
-                        .clickable {
-                            coroutineScope.launch {
-                                if (scaffoldState.bottomSheetState.isVisible) {
-                                    scaffoldState.bottomSheetState.hide()
-                                }
-                            }
-                        },
+                        .align(Alignment.TopCenter),
                     mediaItems = listOf(
                         VideoPlayerMediaItem.NetworkMediaItem(
                             url = playUrl,
@@ -219,7 +225,7 @@ fun PlayScreen(
                     resizeMode = ResizeMode.ZOOM,
                     handleLifecycle = true,
                     autoPlay = true,
-                    usePlayerController = true,
+                    usePlayerController = false,
                     enablePip = true,
                     handleAudioFocus = true,
                     controllerConfig = VideoPlayerControllerConfig(
@@ -233,7 +239,7 @@ fun PlayScreen(
                         showNextTrackButton = false,
                         showRepeatModeButton = false,
                         controllerShowTimeMilliSeconds = 5_000,
-                        controllerAutoShow = true,
+                        controllerAutoShow = false,
                         showFullScreenButton = false,
                     ),
                     volume = 0.5f,
@@ -315,7 +321,11 @@ fun PlayScreen(
                         contentPadding = PaddingValues(all = 0.dp),
                         onClick = {
                             coroutineScope.launch {
-                                scaffoldState.bottomSheetState.expand()
+                                if(scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded){
+                                    scaffoldState.bottomSheetState.hide()
+                                }else{
+                                    scaffoldState.bottomSheetState.expand()
+                                }
                             }
                         },
                         modifier = Modifier.size(width = 60.dp, height = 30.dp)
@@ -330,6 +340,9 @@ fun PlayScreen(
                     }
                 }
             }
+            /*Box(modifier = Modifier.align(Alignment.BottomStart)){
+                Slider(state = sliderState,thumb={}, modifier = Modifier.alpha(0.5f), enabled = false)
+            }*/
         }
     }
 }

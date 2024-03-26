@@ -17,6 +17,8 @@ class PlayViewModel:ViewModel() {
 
     var list by mutableStateOf(listOf(ItemData(id = "")))
 
+    var playUrl by mutableStateOf("")
+
     var loading by mutableStateOf(false)
         private set
 
@@ -28,6 +30,7 @@ class PlayViewModel:ViewModel() {
                 val tmpList = mutableListOf<ItemData>()
                 tmpList.addAll(res.data)
                 list = tmpList
+                playUrl = playService.play(SharedPreferencesUtils(context).get("token"), list[0].id).data
             }else{
                 CommonUtils.toast(context,res.msg)
             }

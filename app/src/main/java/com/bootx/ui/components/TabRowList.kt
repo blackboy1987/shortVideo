@@ -37,3 +37,5 @@ fun TabRowList(tabs: List<String>,selectedTabIndex: Int,onClick:(selectTabIndex:
     )
 }
 
+
+

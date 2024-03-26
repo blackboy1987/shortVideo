@@ -14,7 +14,7 @@ interface HomeService {
     suspend fun category(@Header("token") token: String, @Field("id") id: String): HomeDataResponse
     @POST("/api/list")
     @FormUrlEncoded
-    suspend fun list(@Header("token") token: String, @Field("id") id: String): List1DataResponse
+    suspend fun list(@Header("token") token: String, @Field("id") id: String, @Field("keywords") keywords: String): List1DataResponse
 
 
     companion object {
